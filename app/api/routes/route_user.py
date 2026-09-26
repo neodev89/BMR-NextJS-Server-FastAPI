@@ -21,12 +21,19 @@ from app.utils.response_example import make_response_example
 from app.utils.statistic_words import (
     statistic_words,
     statistic_number,
+    statistic_number_average
 )
+from fastapi.responses import StreamingResponse
+from jinja2 import Environment, FileSystemLoader
+from weasyprint import HTML
+import io
+import asyncio
 
 from collections import Counter
 
 routes = APIRouter()
 
+env = Environment(loader=FileSystemLoader("templates"))
 
 @routes.get(
     "/api/get-user",
@@ -280,9 +287,9 @@ async def statistic_for_user(email: str, db: AsyncSession = Depends(get_db)):
             new_statistic_user.list_age.append(row.age)
             new_statistic_user.list_activity.append(row.activity)
             new_statistic_user.list_bmr.append(row.bmr)
-            new_statistic_user.list_order.append(row.order)
+            new_statistic_user.list_order.append(row.order - 1)
             
-
+        print("ORDER INIZIALE: ", row.order)
         print("ORDER: ", new_statistic_user.list_order)
         # 5. Calcoliamo le medie
         words = [
@@ -295,16 +302,17 @@ async def statistic_for_user(email: str, db: AsyncSession = Depends(get_db)):
         new_statistic_user.average_activity = statistic_words(
             new_statistic_user.list_activity, words
         )
-        new_statistic_user.average_weight = statistic_number(
+        new_statistic_user.average_weight = statistic_number_average(
             new_statistic_user.list_weight
         )
-        new_statistic_user.average_height = statistic_number(
+        new_statistic_user.average_height = statistic_number_average(
             new_statistic_user.list_height
         )
-        new_statistic_user.average_age = statistic_number(
+        new_statistic_user.average_age = statistic_number_average(
             new_statistic_user.list_age
         )
-        new_statistic_user.average_bmr = statistic_number(new_statistic_user.list_bmr)
+              
+        new_statistic_user.average_bmr = statistic_number_average(new_statistic_user.list_bmr)
 
         print("User Value RITORNA: ", new_statistic_user)
         return ResponseAPI[StatisticUser](
@@ -318,3 +326,24 @@ async def statistic_for_user(email: str, db: AsyncSession = Depends(get_db)):
         return ResponseAPI[Any](
             success=False, message="Chiamata API fallita!", data=str(e), status=500
         )
+
+
+def render_pdf(html: str) -> bytes:
+    return HTML(string=html).write_pdf()
+
+@routes.post("/api/stat-pdf")
+async def stat_pdf(stat: StatisticUser):
+    template = env.get_template("bmr_template.html")
+    stat.list_order = list(range(len(stat.list_bmr)))
+    html = template.render(stat=stat)
+
+    # WeasyPrint è sincrono → lo spostiamo in threadpool
+    pdf_bytes = await asyncio.to_thread(render_pdf, html)
+
+    return StreamingResponse(
+        io.BytesIO(pdf_bytes),
+        media_type="application/pdf",
+        headers={"Content-Disposition": "inline; filename=bmr_statistiche.pdf"}
+    )
+    
+    

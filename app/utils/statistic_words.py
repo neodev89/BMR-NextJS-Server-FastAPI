@@ -37,3 +37,25 @@ def statistic_number(value: List[str]) -> str:
 
     # Ritorna come stringa (il tuo modello usa str)
     return str(result)
+
+def statistic_number_average(value: List[str]) -> str:
+    cleaned = []
+
+    for v in value:
+        if v is None:
+            continue
+        try:
+            cleaned.append(float(v))
+        except ValueError:
+            continue
+
+    if not cleaned:
+        return ""
+
+    # Se c'è un solo valore, restituisci comunque il float formattato
+    if len(cleaned) == 1:
+        return f"{cleaned[0]:.2f}"
+
+    media = sum(cleaned) / len(cleaned)
+    return f"{media:.2f}"
+

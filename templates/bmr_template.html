@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="utf-8" />
+  <title>Statistiche utente BMR</title>
+  <style>
+    :root {
+      --bg: #f7f7f9;
+      --card-bg: #ffffff;
+      --primary: #2563eb;
+      --text-main: #111827;
+      --text-muted: #6b7280;
+      --border: #e5e7eb;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      padding: 40px;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text-main);
+    }
+
+    .page {
+      max-width: 900px;
+      margin: 0 auto;
+      background: var(--card-bg);
+      padding: 32px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+    }
+
+    h1, h2 {
+      margin: 0 0 12px;
+      font-weight: 600;
+    }
+
+    h1 {
+      font-size: 24px;
+      color: var(--primary);
+    }
+
+    h2 {
+      font-size: 18px;
+      margin-top: 24px;
+    }
+
+    p {
+      margin: 4px 0 10px;
+      font-size: 14px;
+      color: var(--text-muted);
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 24px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 16px;
+    }
+
+    .header-left { max-width: 60%; }
+
+    .header-right {
+      text-align: right;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      background: #eff6ff;
+      color: var(--primary);
+      margin-top: 6px;
+    }
+
+    .grid {
+      display: flex;
+      gap: 16px;
+      margin-top: 16px;
+      flex-wrap: wrap;
+    }
+
+    .card {
+      flex: 1 1 260px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      padding: 16px 18px;
+      background: #fafafa;
+    }
+
+    .card-title {
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    .card-value {
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .card-sub {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+      font-size: 13px;
+    }
+
+    th, td {
+      padding: 8px 10px;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+    }
+
+    th {
+      background: #f3f4f6;
+      font-weight: 500;
+      color: var(--text-muted);
+    }
+
+    tr:last-child td { border-bottom: none; }
+
+    .text-right { text-align: right; }
+
+    .note {
+      margin-top: 18px;
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <!-- Header -->
+    <div class="header">
+      <div class="header-left">
+        <h1>Statistiche utente BMR</h1>
+        <p>Riepilogo dei dati registrati e delle medie calcolate.</p>
+        <span class="badge">{{ stat.name }} · {{ stat.email }}</span>
+      </div>
+      <div class="header-right">
+        <div>Creato il: <strong>{{ stat.creation_date }}</strong></div>
+      </div>
+    </div>
+
+    <!-- Medie -->
+    <h2>Medie calcolate</h2>
+    <div class="grid">
+      <div class="card">
+        <div class="card-title">Peso medio</div>
+        <div class="card-value">{{ stat.average_weight }} kg</div>
+        <div class="card-sub">Basato su tutti i pesi registrati.</div>
+      </div>
+      <div class="card">
+        <div class="card-title">Altezza media</div>
+        <div class="card-value">{{ stat.average_height }} cm</div>
+      </div>
+      <div class="card">
+        <div class="card-title">Età media</div>
+        <div class="card-value">{{ stat.average_age }} anni</div>
+      </div>
+      <div class="card">
+        <div class="card-title">Attività media</div>
+        <div class="card-value">{{ stat.average_activity }}</div>
+      </div>
+      <div class="card">
+        <div class="card-title">BMR medio</div>
+        <div class="card-value">{{ stat.average_bmr }} kcal</div>
+      </div>
+    </div>
+
+    <!-- Storico ordinato -->
+    <h2>Storico misurazioni</h2>
+    <p>Le righe sono ordinate secondo <code>list_order</code>.</p>
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Peso (kg)</th>
+          <th>Altezza (cm)</th>
+          <th>Età</th>
+          <th>Attività</th>
+          <th class="text-right">BMR (kcal)</th>
+        </tr>
+      </thead>
+      <tbody>
+        {# assumiamo che tutte le liste abbiano stessa lunghezza #}
+        {% for idx in stat.list_order %}
+        <tr>
+          <td>{{ idx + 1 }}</td>
+          <td>{{ stat.list_weight[idx] }}</td>
+          <td>{{ stat.list_height[idx] }}</td>
+          <td>{{ stat.list_age[idx] }}</td>
+          <td>{{ stat.list_activity[idx] }}</td>
+          <td class="text-right">{{ stat.list_bmr[idx] }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <!-- Note -->
+    <div class="note">
+      Questo riepilogo è basato sui dati forniti dall’utente e sulle elaborazioni del sistema BMR Calculator.
+      I valori sono da intendersi come supporto informativo e non sostituiscono il parere di un professionista.
+    </div>
+  </div>
+</body>
+</html>
