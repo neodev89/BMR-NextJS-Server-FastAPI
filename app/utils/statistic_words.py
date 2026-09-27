@@ -36,7 +36,7 @@ def statistic_number(value: List[str]) -> str:
     result = counter.most_common(1)[0][0]
 
     # Ritorna come stringa (il tuo modello usa str)
-    return str(result)
+    return str(result.replace(".", ","))
 
 def statistic_number_average(value: List[str]) -> str:
     cleaned = []
@@ -59,3 +59,23 @@ def statistic_number_average(value: List[str]) -> str:
     media = sum(cleaned) / len(cleaned)
     return f"{media:.2f}"
 
+def statistic_age_average(value: List[str]) -> str:
+    cleaned = []
+
+    for v in value:
+        if v is None:
+            continue
+        try:
+            # Salva il valore come float senza arrotondarlo ora
+            cleaned.append(float(v))
+        except (ValueError, TypeError):
+            continue
+
+    if not cleaned:
+        return ""
+
+    # Calcola la media numerica
+    media = sum(cleaned) / len(cleaned)
+    
+    # Arrotonda il risultato finale e convertilo in stringa
+    return str(round(media))

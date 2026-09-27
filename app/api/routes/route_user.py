@@ -16,13 +16,16 @@ from sqlalchemy import select
 from urllib.parse import unquote
 import hashlib
 from typing import Any
+from datetime import datetime
 
 from app.utils.response_example import make_response_example
 from app.utils.statistic_words import (
     statistic_words,
     statistic_number,
-    statistic_number_average
+    statistic_number_average,
+    statistic_age_average,
 )
+from app.utils.replace_dots import replace_dots_words
 from fastapi.responses import StreamingResponse
 from jinja2 import Environment, FileSystemLoader
 from weasyprint import HTML
@@ -259,66 +262,17 @@ async def statistic_for_user(email: str, db: AsyncSession = Depends(get_db)):
                 status=404,
             )
 
-        # 3. Inizializziamo l'oggetto per le statistiche prendendo i dati dal primo record
-        first_uv = user_joined.user_value[0]
-
-        new_statistic_user = StatisticUser(
-            token=first_uv.token_user,
-            email=first_uv.user_name,
-            name=user_joined.name,
-            list_weight=[],
-            list_height=[],
-            list_age=[],
-            list_activity=[],
-            list_bmr=[],
-            average_weight="",
-            average_height="",
-            average_age="",
-            average_activity="",
-            average_bmr="",
-            creation_date=str(first_uv.created_at),
-            list_order=[],
-        )
-
-        # 4. Popoliamo le liste iterando direttamente su user_joined.user_value!
-        for row in user_joined.user_value:
-            new_statistic_user.list_weight.append(row.weight)
-            new_statistic_user.list_height.append(row.height)
-            new_statistic_user.list_age.append(row.age)
-            new_statistic_user.list_activity.append(row.activity)
-            new_statistic_user.list_bmr.append(row.bmr)
-            new_statistic_user.list_order.append(row.order - 1)
-            
-        print("ORDER INIZIALE: ", row.order)
-        print("ORDER: ", new_statistic_user.list_order)
-        # 5. Calcoliamo le medie
-        words = [
-            "Sedentario",
-            "Leggermente attivo",
-            "Moderatamente attivo",
-            "Molto attivo",
-            "Atleta",
-        ]
-        new_statistic_user.average_activity = statistic_words(
-            new_statistic_user.list_activity, words
-        )
-        new_statistic_user.average_weight = statistic_number_average(
-            new_statistic_user.list_weight
-        )
-        new_statistic_user.average_height = statistic_number_average(
-            new_statistic_user.list_height
-        )
-        new_statistic_user.average_age = statistic_number_average(
-            new_statistic_user.list_age
-        )
-              
-        new_statistic_user.average_bmr = statistic_number_average(new_statistic_user.list_bmr)
-
-        print("User Value RITORNA: ", new_statistic_user)
+        new_s_u = replace_dots_words(user_joined)
+        if (new_s_u is None):
+            return ResponseAPI[Any](
+               success=False, message="Chiamata API fallita!", data=str(e), status=500
+            )
+        
+        print("User Value RITORNA: ", new_s_u)
         return ResponseAPI[StatisticUser](
             success=True,
             message="Statistiche dell'utente presenti",
-            data=new_statistic_user,
+            data=new_s_u,
             status=200,
         )
 
