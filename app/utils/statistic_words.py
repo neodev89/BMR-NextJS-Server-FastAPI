@@ -38,7 +38,7 @@ def statistic_number(value: List[str]) -> str:
     # Ritorna come stringa (il tuo modello usa str)
     return str(result.replace(".", ","))
 
-def statistic_number_average(value: List[str]) -> str:
+def statistic_number_average(value: List[int]) -> str:
     cleaned = []
 
     for v in value:

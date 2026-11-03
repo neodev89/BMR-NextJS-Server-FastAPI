@@ -1,0 +1,275 @@
+{
+    "cibi_italiani_calorie_100g": {
+        "primi_e_cereali": [
+            {
+                "nome": "Pasta di semola (secca)",
+                "calorie_100g": 355,
+                "unita": "kcal"
+            },
+            {
+                "nome": "Riso Arborio / Carnaroli (secco)",
+                "calorie_100g": 358,
+                "unita": "kcal"
+            },
+            {
+                "nome": "Pane comune (tipo 0)",
+                "calorie_100g": 265,
+                "unita": "kcal"
+            },
+            {
+                "nome": "Pane integrale",
+                "calorie_100g": 224,
+                "unita": "kcal"
+            },
+            {
+                "nome": "Gnocchi di patate (freschi)",
+                "calorie_100g": 160,
+                "unita": "kcal"
+            },
+            {
+                "nome": "Polenta (farina di mais secca)",
+                "calorie_100g": 362,
+                "unita": "kcal"
+            },
+            {
+                "nome": "Focaccia alla genovese",
+                "calorie_100g": 380,
+                "unita": "kcal"
+            },
+            {
+                "nome": "Pizza Margherita (media)",
+                "calorie_100g": 271,
+                "unita": "kcal"
+            }
+        ],
+        "carni_e_salumi": [
+            {
+                "nome": "Petto di pollo (crudo)",
+                "calorie_100g": 110,
+                "unita": "kcal"
+            },
+            {
+                "nome": "Manzo (taglio magro, crudo)",
+                "calorie_100g": 130,
+                "unita": "kcal"
+            },
+            {
+                "nome": "Salsiccia di maiale (fresca, cruda)",
+                "calorie_100g": 304,
+                "unita": "kcal"
+            },
+            {
+                "nome": "Prosciutto crudo di Parma / San Daniele",
+                "calorie_100g": 235,
+                "unita": "kcal"
+            },
+            {
+                "nome": "Prosciutto cotto",
+                "calorie_100g": 215,
+                "unita": "kcal"
+            },
+            {
+                "nome": "Bresaola della Valtellina",
+                "calorie_100g": 151,
+                "unita": "kcal"
+            },
+            {
+                "nome": "Mortadella",
+                "calorie_100g": 288,
+                "unita": "kcal"
+            },
+            {
+                "nome": "Salame Milano",
+                "calorie_100g": 384,
+                "unita": "kcal"
+            }
+        ],
+        "pesce_e_frutti_di_mare": [
+            {
+                "nome": "Orata / Spigola (fresca, cruda)",
+                "calorie_100g": 110,
+                "unita": "kcal"
+            },
+            {
+                "nome": "Salmone (fresco, crudo)",
+                "calorie_100g": 208,
+                "unita": "kcal"
+            },
+            {
+                "nome": "Tonno in scatola all'olio d'oliva (sgocciolato)",
+                "calorie_100g": 192,
+                "unita": "kcal"
+            },
+            {
+                "nome": "Tonno in scatola al naturale",
+                "calorie_100g": 100,
+                "unita": "kcal"
+            },
+            {
+                "nome": "Cozze / Vongole (sgusciate, crude)",
+                "calorie_100g": 84,
+                "unita": "kcal"
+            },
+            {
+                "nome": "Baccalà ammollato",
+                "calorie_100g": 95,
+                "unita": "kcal"
+            }
+        ],
+        "latticini_e_formaggi": [
+            {
+                "nome": "Mozzarella di latte vaccino (Fiordilatte)",
+                "calorie_100g": 253,
+                "unita": "kcal"
+            },
+            {
+                "nome": "Mozzarella di bufala campana",
+                "calorie_100g": 288,
+                "unita": "kcal"
+            },
+            {
+                "nome": "Parmigiano Reggiano / Grana Padano",
+                "calorie_100g": 392,
+                "unita": "kcal"
+            },
+            {
+                "nome": "Ricotta di vacca",
+                "calorie_100g": 146,
+                "unita": "kcal"
+            },
+            {
+                "nome": "Gorgonzola DOP",
+                "calorie_100g": 314,
+                "unita": "kcal"
+            },
+            {
+                "nome": "Pecorino Romano DOP",
+                "calorie_100g": 387,
+                "unita": "kcal"
+            },
+            {
+                "nome": "Stracchino / Crescenza",
+                "calorie_100g": 281,
+                "unita": "kcal"
+            },
+            {
+                "nome": "Latte intero fresco",
+                "calorie_100g": 64,
+                "unita": "kcal"
+            }
+        ],
+        "verdure_e_legumi": [
+            {
+                "nome": "Pomodori da insalata",
+                "calorie_100g": 18,
+                "unita": "kcal"
+            },
+            {
+                "nome": "Zucchine",
+                "calorie_100g": 17,
+                "unita": "kcal"
+            },
+            {
+                "nome": "Melanzane",
+                "calorie_100g": 25,
+                "unita": "kcal"
+            },
+            {
+                "nome": "Carciofi",
+                "calorie_100g": 22,
+                "unita": "kcal"
+            },
+            {
+                "nome": "Insalata / Lattuga",
+                "calorie_100g": 15,
+                "unita": "kcal"
+            },
+            {
+                "nome": "Patate (crude)",
+                "calorie_100g": 77,
+                "unita": "kcal"
+            },
+            {
+                "nome": "Lenticchie (secche, crude)",
+                "calorie_100g": 325,
+                "unita": "kcal"
+            },
+            {
+                "nome": "Ceci (in scatola, sgocciolati)",
+                "calorie_100g": 120,
+                "unita": "kcal"
+            }
+        ],
+        "frutta": [
+            {
+                "nome": "Mele",
+                "calorie_100g": 52,
+                "unita": "kcal"
+            },
+            {
+                "nome": "Banane",
+                "calorie_100g": 89,
+                "unita": "kcal"
+            },
+            {
+                "nome": "Arance",
+                "calorie_100g": 47,
+                "unita": "kcal"
+            },
+            {
+                "nome": "Uva",
+                "calorie_100g": 69,
+                "unita": "kcal"
+            },
+            {
+                "nome": "Fichi freschi",
+                "calorie_100g": 74,
+                "unita": "kcal"
+            }
+        ],
+        "condimenti_e_grassi": [
+            {
+                "nome": "Olio extravergine d'oliva",
+                "calorie_100g": 884,
+                "unita": "kcal"
+            },
+            {
+                "nome": "Burro",
+                "calorie_100g": 717,
+                "unita": "kcal"
+            },
+            {
+                "nome": "Pesto alla genovese",
+                "calorie_100g": 505,
+                "unita": "kcal"
+            }
+        ],
+        "dolci_e_colazione": [
+            {
+                "nome": "Cornetto / Brioche semplice",
+                "calorie_100g": 410,
+                "unita": "kcal"
+            },
+            {
+                "nome": "Biscotti frollini",
+                "calorie_100g": 460,
+                "unita": "kcal"
+            },
+            {
+                "nome": "Nutella / Crema alle nocciole",
+                "calorie_100g": 539,
+                "unita": "kcal"
+            },
+            {
+                "nome": "Gelato artigianale (media alle creme)",
+                "calorie_100g": 220,
+                "unita": "kcal"
+            },
+            {
+                "nome": "Tiramisù classico",
+                "calorie_100g": 300,
+                "unita": "kcal"
+            }
+        ]
+    }
+}

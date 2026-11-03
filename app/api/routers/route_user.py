@@ -1,5 +1,16 @@
 # qui le routes per gestire le API utente
-from fastapi import APIRouter, Body, Response, status, HTTPException, Depends
+from fastapi import (
+    APIRouter, 
+    Body, 
+    Response, 
+    status, 
+    HTTPException, 
+    Depends
+)
+from fastapi.responses import StreamingResponse
+
+import csv
+import io
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.model import (
     ResponseAPI,
@@ -10,13 +21,14 @@ from app.models.model import (
 )
 from app.models.user_value import UserValue
 from app.models.users import User
+from app.models.statistic_users import StatisticUserMapped
 from app.utils.hash_pw import hash_password, verify_password
 from app.core.database import get_db
 from sqlalchemy import select
 from urllib.parse import unquote
 import hashlib
 from typing import Any
-from datetime import datetime
+from datetime import datetime, timezone
 
 from app.utils.response_example import make_response_example
 from app.utils.statistic_words import (
@@ -25,12 +37,19 @@ from app.utils.statistic_words import (
     statistic_number_average,
     statistic_age_average,
 )
-from app.utils.replace_dots import replace_dots_words
-from fastapi.responses import StreamingResponse
+from app.utils.calculate_statistic import calculate_user_statistics
 from jinja2 import Environment, FileSystemLoader
 from weasyprint import HTML
 import io
 import asyncio
+from app.api.services.statistic_service import process_and_save_statistic
+from app.api.services.csv_service import csv_process_service
+from app.api.crud.statistic_crud import (
+    get_last_user_statistic,
+    get_all_statistic_user,
+    get_user_values_with_name
+)
+from app.utils.response_example import make_response_example
 
 from collections import Counter
 
@@ -199,86 +218,42 @@ async def statistic_for_user(email: str, db: AsyncSession = Depends(get_db)):
     try:
         if not email or not email.strip():
             return ResponseAPI[None](
-                success=False,
-                message="Nessuna email valida",
-                data=None,
-                status=400
+                success=False, message="Nessuna email valida", data=None, status=400
             )
             
         email_user = unquote(email).strip().lower()
 
-        # Query con il filtro WHERE per prendere solo l'utente richiesto
-        stmt = (
-            select(UserValue, User.name)
-            .join(User, User.token == UserValue.token_user)
-            .where(UserValue.user_name == email_user)
-        )
+        # Deleghiamo tutto al Service Layer
+        statistic_data, message = await process_and_save_statistic(email_user, db)
 
-        res = await db.execute(stmt)
-        rows = res.all()
-
-        print("ROWS DB: ", rows)
-
-        if not rows:
-            return ResponseAPI[None](
-                success=False,
-                message="La lista da DB è vuota!",
-                data=None,
-                status=404,
-            )
-
-        # 1. Raccogliamo tutti i record UserValueModel nella lista
-        list_user_value: list[UserValueModel] = []
-        user_name_from_db = rows[0][1]  # Il nome dell'utente dalla prima riga
-
-        for uv, _ in rows:
-            uv_item = UserValueModel(
-                id=uv.id,
-                created_at=str(uv.created_at),
-                user_name=uv.user_name,
-                weight=str(uv.weight),
-                height=str(uv.height),
-                age=str(uv.age),
-                token_user=uv.token_user,
-                activity=uv.activity,
-                bmr=str(uv.bmr),
-                gender=uv.gender,
-                order=uv.order,
-            )
-            list_user_value.append(uv_item)
-
-        # 2. Creiamo UN UNICO oggetto JoinedUserTabModel!
-        user_joined = JoinedUserTabModel(
-            user_value=list_user_value,
-            name=user_name_from_db
-        )
-
-        # Ora user_joined.user_value è davvero la lista di tutti i BMR!
-        if len(user_joined.user_value) == 0:
-            return ResponseAPI[None](
-                success=False,
-                message="La lista BMR dell'utente è vuota",
-                data=None,
-                status=404,
-            )
-
-        new_s_u = replace_dots_words(user_joined)
-        if (new_s_u is None):
-            return ResponseAPI[Any](
-               success=False, message="Chiamata API fallita!", data=str(e), status=500
-            )
-        
-        print("User Value RITORNA: ", new_s_u)
         return ResponseAPI[StatisticUser](
             success=True,
-            message="Statistiche dell'utente presenti",
-            data=new_s_u,
+            message=message,
+            data=statistic_data,
             status=200,
         )
 
+    except ValueError as ve:
+        error_msg = str(ve)
+        if error_msg == "USER_NOT_FOUND":
+            return ResponseAPI[None](success=False, message="La lista da DB è vuota!", data=None, status=404)
+        if error_msg == "EMPTY_BMR_LIST":
+            return ResponseAPI[None](success=False, message="La lista BMR dell'utente è vuota", data=None, status=404)
+        raise ve
+
     except Exception as e:
         return ResponseAPI[Any](
-            success=False, message="Chiamata API fallita!", data=str(e), status=500
+            success=False, 
+            message="Chiamata API fallita e utente non salvato a database!", 
+            data=str(e), 
+            status=500
+        )
+    except Exception as e:
+        return ResponseAPI[Any](
+            success=False, 
+            message="Chiamata API fallita e utente non salvato a database!", 
+            data=str(e), 
+            status=500
         )
 
 
@@ -301,3 +276,51 @@ async def stat_pdf(stat: StatisticUser):
     )
     
     
+@routes.get("/api/export-statistic-for-user/csv")
+async def download_statistic_csv(email: str, db: AsyncSession = Depends(get_db)):
+    try:
+        # Controllo se l'email è None o una stringa vuota
+        if not email or not email.strip():
+            return ResponseAPI[None](
+                success=False,
+                message="Email non definita",
+                data=None,
+                status=400,
+            )
+            
+        email_user = unquote(email).strip().lower()
+        
+        records = await get_all_statistic_user(db, email_user)
+        
+        if not records:
+            return ResponseAPI[None](
+                success=False,
+                message="Nessun utente corrispondente alla mail",
+                data=None,
+                status=404
+            )
+                   
+        csv_service_def = await csv_process_service(records=records, email_user=email_user)
+        if not csv_service_def:
+            return ResponseAPI[None](
+                success=False,
+                message="il CSV non è stato creato!",
+                data=None,
+                status=400
+            )
+        
+        return StreamingResponse(
+            iter([csv_service_def.output.getvalue()]),
+            media_type="text/csv",
+            headers={
+                "Content-Disposition": f"attachment; filename={csv_service_def.filename}"
+            }
+        )
+        
+    except Exception as e:
+        return ResponseAPI[Any](
+            success=False,
+            message=f"API Fallita a causa dell'errore {e}",
+            data=None,
+            status=500,
+        )
