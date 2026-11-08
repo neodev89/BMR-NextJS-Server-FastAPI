@@ -1,7 +1,7 @@
 import io
 import asyncio
 import csv
-from app.models.statistic_users import StatisticUserMapped
+from app.models_db.statistic_users import StatisticUserMapped
 from app.models.model import CSVResult
 
 

@@ -19,9 +19,9 @@ from app.models.model import (
     JoinedUserTabModel,
     StatisticUser,
 )
-from app.models.user_value import UserValue
-from app.models.users import User
-from app.models.statistic_users import StatisticUserMapped
+from app.models_db.user_value import UserValue
+from app.models_db.users import User
+from app.models_db.statistic_users import StatisticUserMapped
 from app.utils.hash_pw import hash_password, verify_password
 from app.core.database import get_db
 from sqlalchemy import select
@@ -248,14 +248,6 @@ async def statistic_for_user(email: str, db: AsyncSession = Depends(get_db)):
             data=str(e), 
             status=500
         )
-    except Exception as e:
-        return ResponseAPI[Any](
-            success=False, 
-            message="Chiamata API fallita e utente non salvato a database!", 
-            data=str(e), 
-            status=500
-        )
-
 
 def render_pdf(html: str) -> bytes:
     return HTML(string=html).write_pdf()

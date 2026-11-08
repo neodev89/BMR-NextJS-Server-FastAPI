@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.model import UserValueModel, JoinedUserTabModel, StatisticUser
-from app.models.statistic_users import StatisticUserMapped
+from app.models_db.statistic_users import StatisticUserMapped
 from app.utils.calculate_statistic import calculate_user_statistics
 from app.api.crud import statistic_crud
 

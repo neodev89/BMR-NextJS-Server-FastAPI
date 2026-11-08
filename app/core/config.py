@@ -1,7 +1,9 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=".env")
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+    
     database_url: str
+    direct_database_url: str  # <-- Aggiungiamo questa per Alembic
 
 settings = Settings()

@@ -1,8 +1,8 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from app.models.user_value import UserValue
-from app.models.users import User
-from app.models.statistic_users import StatisticUserMapped
+from app.models_db.user_value import UserValue
+from app.models_db.users import User
+from app.models_db.statistic_users import StatisticUserMapped
 from app.models.model import ResponseAPI
 
 async def get_user_values_with_name(db: AsyncSession, email_user: str):
