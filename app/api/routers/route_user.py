@@ -8,7 +8,7 @@ from fastapi import (
     Depends
 )
 from fastapi.responses import StreamingResponse
-
+import resend
 import csv
 import io
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -18,6 +18,7 @@ from app.models.model import (
     UserValueModel,
     JoinedUserTabModel,
     StatisticUser,
+    PDFStatisticData,
 )
 from app.models_db.user_value import UserValue
 from app.models_db.users import User
@@ -41,6 +42,7 @@ from app.utils.calculate_statistic import calculate_user_statistics
 from jinja2 import Environment, FileSystemLoader
 from weasyprint import HTML
 import io
+import os
 import asyncio
 from app.api.services.statistic_service import process_and_save_statistic
 from app.api.services.csv_service import csv_process_service
@@ -49,13 +51,45 @@ from app.api.crud.statistic_crud import (
     get_all_statistic_user,
     get_user_values_with_name
 )
+from app.api.services.replace_dec_separator import replace_dec_separator
+from app.api.services.format_date import format_italian_date
 from app.utils.response_example import make_response_example
-
+from app.api.services.send_pdf_email import creation_email
 from collections import Counter
+from dotenv import load_dotenv
+from pathlib import Path
+
+# Trova la cartella corrente del file in cui ti trovi
+current_file_dir = Path(__file__).resolve().parent
+print(f"ci troviamo nella rotta {current_file_dir}")
+
+# Se questo codice è in /app/api/routes/file.py, dobbiamo salire di 3 livelli per arrivare alla root,
+# oppure se è nel main.py alla root basta .parent
+# Usiamo un metodo robusto che cerca il file .env risalendo le cartelle:
+env_path = current_file_dir
+while env_path != env_path.parent:
+    if (env_path / ".env").exists():
+        env_path = env_path / ".env"
+        break
+    env_path = env_path.parent
+
+print(f"la rotta parent è {env_path.parent}")
+print(f"la rotta Resend nelle env è {env_path}")
+
+# 2. Carica esplicitamente il .env trovato
+load_dotenv(dotenv_path=env_path)
+resend_from = os.environ.get("RESEND_FROM")
+
+# 3. Test immediato per verificare se ora lo legge
+print("✅ RESEND_FROM caricato correttamente:", resend_from)
+
+# Test immediato per vedere se ora lo legge
+print("DEBUG RESEND_FROM:", resend_from)
 
 routes = APIRouter()
 
 env = Environment(loader=FileSystemLoader("templates"))
+resend.api_key = os.environ.get("RESEND_KEY")
 
 @routes.get(
     "/api/get-user",
@@ -236,9 +270,19 @@ async def statistic_for_user(email: str, db: AsyncSession = Depends(get_db)):
     except ValueError as ve:
         error_msg = str(ve)
         if error_msg == "USER_NOT_FOUND":
-            return ResponseAPI[None](success=False, message="La lista da DB è vuota!", data=None, status=404)
+            return ResponseAPI[None](
+                success=False, 
+                message="La lista da DB è vuota!", 
+                data=None, 
+                status=404
+            )
         if error_msg == "EMPTY_BMR_LIST":
-            return ResponseAPI[None](success=False, message="La lista BMR dell'utente è vuota", data=None, status=404)
+            return ResponseAPI[None](
+                success=False, 
+                message="La lista BMR dell'utente è vuota", 
+                data=None, 
+                status=404
+            )
         raise ve
 
     except Exception as e:
@@ -254,9 +298,28 @@ def render_pdf(html: str) -> bytes:
 
 @routes.post("/api/stat-pdf")
 async def stat_pdf(stat: StatisticUser):
+    
+    new_statistic = PDFStatisticData(
+        token=stat.token,
+        email=stat.email,
+        name=stat.name,
+        list_weight=replace_dec_separator(stat.list_weight),
+        list_height=replace_dec_separator(stat.list_height),
+        list_age=stat.list_age,
+        list_activity=stat.list_activity,
+        list_bmr=replace_dec_separator(stat.list_bmr),
+        average_weight=replace_dec_separator(stat.average_weight),
+        average_height=replace_dec_separator(stat.average_height),
+        average_age=stat.average_age,
+        average_activity=stat.average_activity,
+        average_bmr=replace_dec_separator(stat.average_bmr),
+        creations_date=format_italian_date(stat.creations_date),
+        list_order=stat.list_order,
+    )
+    
     template = env.get_template("bmr_template.html")
-    stat.list_order = list(range(len(stat.list_bmr)))
-    html = template.render(stat=stat)
+    stat.list_order = list(range(len(new_statistic.list_bmr)))
+    html = template.render(stat=new_statistic)
 
     # WeasyPrint è sincrono → lo spostiamo in threadpool
     pdf_bytes = await asyncio.to_thread(render_pdf, html)
@@ -313,6 +376,33 @@ async def download_statistic_csv(email: str, db: AsyncSession = Depends(get_db))
         return ResponseAPI[Any](
             success=False,
             message=f"API Fallita a causa dell'errore {e}",
+            data=None,
+            status=500,
+        )
+        
+@routes.post("/api/send-statistic-pdf")
+async def send_statistic_user_pdf(stat_user: StatisticUser):
+    try:
+        # 1. Genera il PDF in memoria e prepara il dizionario per Resend tramite il servizio
+        params = await creation_email(stat_user, resend_from=resend_from)
+        
+        # 2. Invia effettivamente l'email tramite l'SDK di Resend
+        email_response = resend.Emails.send(params)
+        print("✅ Email inviata con successo! Risposta grezza di Resend:", email_response)
+
+        # 3. Restituisci la risposta di successo al client
+        return ResponseAPI[dict](
+            success=True,
+            message="Report BMR generato e inviato via email con successo!",
+            data={"resend_response": email_response},
+            status=200
+        )
+        
+    except Exception as e:
+        print(f"❌ Errore critico durante l'invio: {str(e)}")
+        return ResponseAPI[None](
+            success=False,
+            message=f"Invio API fallito a causa di: {str(e)}",
             data=None,
             status=500,
         )

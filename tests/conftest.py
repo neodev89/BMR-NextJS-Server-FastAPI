@@ -1,15 +1,22 @@
 # tests/conftest.py
 import pytest
 import pytest_asyncio
+import os
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 from sqlalchemy.pool import StaticPool
 from httpx import AsyncClient, ASGITransport
 
 from app.main import app  # La tua applicazione FastAPI principale
 from app.core.database import Base, get_db
+from pathlib import Path
+
+# Trova la cartella corrente del file in cui ti trovi
+current_file_dir = Path(__file__).resolve().parent
+# estrai la route del progetto e aggiungi il percorso env 
+env_path = current_file_dir.parent / ".env"
 
 # 1. URL per SQLite in-memory asincrono
-DATABASE_URL = "postgresql+psycopg://postgres.nievkcazlxioutxagdpc:d1PZEouwCD6xnikg@aws-1-eu-west-2.pooler.supabase.com:5432/postgres"
+DATABASE_URL = os.environ.get("DATABASE_URL")
 
 # 2. Engine di test con StaticPool (indispensabile per SQLite in-memory)
 engine = create_async_engine(
@@ -26,7 +33,7 @@ TestingSessionLocal = async_sessionmaker(
 
 @pytest_asyncio.fixture(autouse=True)
 async def setup_database():
-    """Crea le tabelle prima di ogni test e le distrugge alla fine."""
+    """Crea le tabelle prima di ogni test e non le distrugge alla fine."""
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
     yield

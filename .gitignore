@@ -1,2 +1,4 @@
-# ignoring venv
+# ignoring venv and env
 /venv
+
+.env

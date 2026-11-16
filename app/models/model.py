@@ -84,6 +84,26 @@ class StatisticUser(BaseModel):
     creations_date: datetime = Field(default_factory=datetime.now)
     list_order: List[int]
        
+class PDFStatisticData(BaseModel):
+    token: str
+    email: str
+    name: str
+
+    list_weight: List[str]
+    list_height: List[str]
+    list_age: List[int]
+    list_activity: List[str]
+    list_bmr: List[str]
+
+    average_weight: str
+    average_height: str
+    average_age: int
+    average_activity: str
+    average_bmr: str
+
+    creations_date: str
+    list_order: List[int]
+       
 class PropsFoodModel(BaseModel):
     nome: str
     calorie_100g: int
